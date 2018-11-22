@@ -139,7 +139,7 @@ extracted <- read.csv("temp/forest_ALS_uppland.csv")
 
 ## 6. Merge data sets and export -----------------------------------------------
 
-forest_plot <- merge(f_plot, laser, all.x = TRUE, by = c("plot", "experiment"))
+forest_plot <- merge(f_plot, laser, by = c("plot", "experiment"))
 forest_plot <- merge(extracted[extracted$buffer == 50 & 
                                extracted$circle_10m == "middle", ],
                      forest_plot,
