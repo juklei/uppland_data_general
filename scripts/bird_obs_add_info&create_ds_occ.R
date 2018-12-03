@@ -80,7 +80,18 @@ obs <- merge(obs, sunrise[, c("date", "Rts_sunrise")], by = "date")
 
 obs$min_post_sunrise <- as.numeric(obs$Rts_obs - obs$Rts_sunrise)/60
 
-## 7. Make a file for distance sampling ----------------------------------------
+## 7. Add days after March 31 --------------------------------------------------
+
+obs$dp_march <- NA
+for(i in unique(obs$obs_year)) {
+  
+  obs$dp_march[obs$obs_year == i] <- 
+    floor(as.numeric(obs$Rts_obs[obs$obs_year == i]-
+                       as.POSIXct(paste0(i,"-03-31"))))
+  
+}
+
+## 8. Make a file for distance sampling ----------------------------------------
 
 dist_end <- obs[obs$method == "ds", ]
 dist_end$sampling_period <- "second"
@@ -104,6 +115,7 @@ write.csv(dist[!is.na(dist$species), c("block",
                                        "sampling_period",
                                        "Rts_obs",
                                        "obs_year",
+                                       "dp_march",
                                        "min_post_sunrise",
                                        "species",
                                        "behaviour",
@@ -115,7 +127,7 @@ write.csv(dist[!is.na(dist$species), c("block",
           "clean/ds_2017to2018.csv",
           row.names = FALSE)
 
-## 8. Make a file for occupancy modelling --------------------------------------
+## 9. Make a file for occupancy modelling --------------------------------------
 
 occ <- obs
 
@@ -147,6 +159,7 @@ write.csv(occ[, c("block",
                   "visit",
                   "Rts_obs",
                   "obs_year",
+                  "dp_march",
                   "min_post_sunrise",
                   "species",
                   "behaviour",
