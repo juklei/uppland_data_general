@@ -110,7 +110,8 @@ write.csv(dist[!is.na(dist$species), c("block",
                                        "sex",
                                        "height",
                                        "dist",
-                                       "minutes_to_obs")], 
+                                       "minutes_to_obs",
+                                       "obs_time")], 
           "clean/ds_2017to2018.csv",
           row.names = FALSE)
 
@@ -152,7 +153,8 @@ write.csv(occ[, c("block",
                   "sex",
                   "height",
                   "dist",
-                  "minutes_to_obs")], 
+                  "minutes_to_obs",
+                  "obs_time")], 
           "clean/occ_2016to2018.csv",
           row.names = FALSE)
 
