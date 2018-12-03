@@ -138,6 +138,15 @@ occ$minutes_to_obs[bolean2] <- occ$minutes_to_obs[bolean2] + 10
 # bolean3 <- occ$obs_year == 2019 & occ$method == "ds"
 # occ$minutes_to_obs[bolean3] <- occ$minutes_to_obs[bolean3] + 10 
 
+## Add survey time to data set:
+
+occ$obs_time <- as.numeric(occ$obs_time)
+
+occ$obs_time[occ$obs_year == 2016] <- 60
+occ$obs_time[occ$obs_year == 2017] <- 30
+occ$obs_time[occ$obs_year == 2018] <- 15
+#occ$obs_time[occ$obs_year == 2019] <- 15
+
 ## Exclude all but first obs:
 
 ## Order according to obs_time:
@@ -158,6 +167,7 @@ write.csv(occ[, c("block",
                   "visit",
                   "Rts_obs",
                   "obs_year",
+                  "obs_time",
                   "dp_march",
                   "min_post_sunrise",
                   "species",
