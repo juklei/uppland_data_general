@@ -11,7 +11,7 @@
 ##
 
 ## First edit: 20181031
-## Last edit: 20181105
+## Last edit: 20190122
 
 ## Author: Julian Klein
 
@@ -66,8 +66,22 @@ f_plot <- merge(f_t1, f_t2, by = c("plot", "experiment"))
 
 ## Calculate forest measurment at the circle_10m level:
 
-f_subplot <- forest[, list("nr_skarm" = sum(umbrella == "yes")), 
-                    by = c("plot", "circle_10m", "experiment")]
+f_t1 <- forest[forest$dbh_cm >= 5, 
+               list("nr" = nrow(.SD), 
+                    "average_dbh" = mean(dbh_cm)),
+               by = c("plot", "circle_10m", "species", "experiment")]
+
+f_t1 <- dcast(f_t1, 
+              plot + circle_10m + experiment ~ species, 
+              value.var = c("nr", "average_dbh"))
+
+## Replace NA in tree counts with 0's in f_t1:
+f_t1[, 4:7][is.na(f_t1[, 4:7])] <- 0
+
+f_t2 <- forest[, list("nr_skarm" = sum(umbrella == "yes")), 
+               by = c("plot", "circle_10m", "experiment")]
+
+f_subplot <- merge(f_t1, f_t2, by = c("plot", "circle_10m", "experiment"))
 
 ## 4. Process ground laser data ------------------------------------------------
 
@@ -145,9 +159,7 @@ forest_plot <- merge(extracted[extracted$buffer == 50 &
                      forest_plot,
                      by = "plot") 
 
-forest_subplot <- merge(extracted[extracted$buffer == 10, ], 
-                        f_subplot,
-                        by = c("plot", "circle_10m")) 
+forest_subplot <- merge(extracted, f_subplot, by = c("plot", "circle_10m")) 
 
 dir.create("clean")
 write.csv(forest_plot, "clean/forest_data_uppland_plot.csv", row.names = FALSE)
