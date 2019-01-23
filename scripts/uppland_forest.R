@@ -39,13 +39,17 @@ head(laser)
 
 ## 3. Process forest data ------------------------------------------------------
 
-## Categoriese into spruce, pine and deciduous and dead wood:
+## Categoriese into spruce, pine and deciduous, alive trees and dead wood:
 
 levels(forest$species)[c(1:4, 6)] <- "lov" 
 
+forest_t1 <- forest[forest$species != "staende_dodved", ]
+forest_t1$species <- "all_alive"
+forest <- rbind(forest, forest_t1)
+
 forest <- as.data.table(forest)
 
-## Calculate forest measurment at the plot level:
+## Calculate forest measurements at the plot level:
 
 f_t1 <- forest[forest$dbh_cm >= 5, 
                list("nr" = nrow(.SD), 
@@ -57,7 +61,7 @@ f_t1 <- dcast(f_t1,
               value.var = c("nr", "average_dbh"))
 
 ## Replace NA in tree counts with 0's in f_t1:
-f_t1[, 3:6][is.na(f_t1[, 3:6])] <- 0
+f_t1[, 3:7][is.na(f_t1[, 3:7])] <- 0
 
 f_t2 <- forest[, list("nr_skarm" = sum(umbrella == "yes")), 
                by = c("plot", "experiment")]
@@ -66,22 +70,22 @@ f_plot <- merge(f_t1, f_t2, by = c("plot", "experiment"))
 
 ## Calculate forest measurment at the circle_10m level:
 
-f_t1 <- forest[forest$dbh_cm >= 5, 
+f_t3 <- forest[forest$dbh_cm >= 5, 
                list("nr" = nrow(.SD), 
                     "average_dbh" = mean(dbh_cm)),
                by = c("plot", "circle_10m", "species", "experiment")]
 
-f_t1 <- dcast(f_t1, 
+f_t3 <- dcast(f_t3, 
               plot + circle_10m + experiment ~ species, 
               value.var = c("nr", "average_dbh"))
 
 ## Replace NA in tree counts with 0's in f_t1:
-f_t1[, 4:7][is.na(f_t1[, 4:7])] <- 0
+f_t3[, 4:8][is.na(f_t3[, 4:8])] <- 0
 
-f_t2 <- forest[, list("nr_skarm" = sum(umbrella == "yes")), 
+f_t4 <- forest[, list("nr_skarm" = sum(umbrella == "yes")), 
                by = c("plot", "circle_10m", "experiment")]
 
-f_subplot <- merge(f_t1, f_t2, by = c("plot", "circle_10m", "experiment"))
+f_subplot <- merge(f_t3, f_t4, by = c("plot", "circle_10m", "experiment"))
 
 ## 4. Process ground laser data ------------------------------------------------
 
