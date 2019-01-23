@@ -14,7 +14,7 @@ library(data.table)
 library(tidyr)
 library(plyr)
 
-## 2. Import of trees.csv from Haglöfs device ----------------------------------
+## 2. Import of trees.csv from Hagl?fs device ----------------------------------
 
 trees <- read.csv("L:/DATA/HagFTax/trees.csv", sep = ";")
 head(trees)
@@ -23,7 +23,8 @@ trees$StandId <- gsub(" ", "", trees$StandId) ## Removes all spaces
 
 trees <- separate(trees, StandId,
                   into = c("measurement_month", "plot"),
-                  sep = c(6, -2))[, c(3, 4, 6, 8, 10, 18)]
+                  sep = c(6, -1))[, c(3, 4, 6, 8, 10, 18)] 
+                  ## Check plot and adjust -1 in sep!!!
 
 trees$granskarm <- ifelse(trees$Species == 10, yes = "yes", no = "no")
 
@@ -45,10 +46,9 @@ colnames(trees)[6] <- "distance_m"
 
 View(trees)
 
-#unique(trees[,2:3]) ## Check if all plots have three measurments.
-                     ## 33 west contains also the measurments from middle
+unique(trees[, 2:3]) ## Check if all plots have three measurments.
 
 ## Write .csv to drive
-#write.csv(trees, "data/uppland_forest_year.csv")
+#write.csv(trees, "temp/uppland_forest_20190123.csv")
 
 ## -----------------------------------END---------------------------------------
