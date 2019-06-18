@@ -149,14 +149,15 @@ occ_double <- unique(occ_double[is.na(occ_double$start), ],
                             "species"))
 
 occ_double <- as.data.frame(occ_double)
-write.csv(occ[, c("block",
-                  "plot",
-                  "observer",
-                  "visit",
-                  "obs_year",
-                  "dp_march",
-                  "min_post_sunrise",
-                  "species")], 
+write.csv(occ_double[, c("block",
+                         "observer",
+                         "plot",
+                         "visit",
+                         "sampling_period",
+                         "obs_year",
+                         "dp_march",
+                         "min_post_sunrise",
+                         "species")], 
           "clean/occ_double_2017to2018.csv",
           row.names = FALSE)
 
