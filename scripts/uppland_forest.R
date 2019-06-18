@@ -11,7 +11,7 @@
 ##
 
 ## First edit: 20181031
-## Last edit: 20190122
+## Last edit: 20190522
 
 ## Author: Julian Klein
 
@@ -107,52 +107,51 @@ laser <- unique(laser[, c("plot", "laser_mean", "experiment")])
 
 ## 5. Create ALS data ----------------------------------------------------------
 
-# ## Specify directory in which the .asc/.tif files are found and to be stored:
-# dir_ALS <- "N:/Uppland project/Laserdata/"
-# dir(dir_ALS)
-# 
-# ## File names
-# n <- c("ElevP95", "PercentAbove0.5m", "PercentAbove5m")
-# 
-# ## Load base files into a raster stack:
-# base <- stack(paste0(dir_ALS, "all_plots_", n, ".asc"))
-# names(base) <- n
-# 
-# ## Add undergrowth density:
-# base$PercentBelow5m <- base[["PercentAbove0.5m"]] -  base[["PercentAbove5m"]]
-# 
-# ## Reduce data set:
-# red <- base[[-which(n == "PercentAbove0.5m")]]
-# 
-# ## Store length of red for later use
-# lr <- length(red[1])
-# 
-# ## Extract data:
-# 
-# buffer <- c(10, 50) ## Chose extraction buffers here
-# 
-# ## Create data set which will be filled by the loop:
-# 
-# extracted <- cbind(coord,
-#                    matrix(NA, ncol = lr),
-#                    sort(rep(buffer, nrow(coord))))
-# colnames(extracted)[6:length(extracted)] <- c(names(red), "buffer")
-# 
-# ## Run the loop across all buffers (time consuming):
-# 
-# for (i in buffer) {
-# 
-#   bol1 <- extracted$buffer == i
-#   extracted[bol1, 6:(5+lr)] <- extract(red,
-#                                        extracted[bol1, c("east", "north")],
-#                                        fun = mean,
-#                                        na.rm = TRUE,
-#                                        buffer = i)
-# 
-# }
-# 
-# dir.create("temp")
-# write.csv(extracted, "temp/forest_ALS_uppland.csv", row.names = FALSE)
+## Specify directory in which the .asc/.tif files are found and to be stored:
+dir_ALS <- "N:/Uppland project/Laserdata/"
+dir(dir_ALS)
+
+## File names
+n <- c("ElevP95", "PercentAbove0.5m", "PercentAbove3m", "PercentAbove5m", "PercentAbove7m")
+
+## Load base files into a raster stack:
+base <- stack(paste0(dir_ALS, "all_plots_", n, ".asc"))
+names(base) <- n
+
+## Add undergrowth density:
+base$PercentBelow3m <- base[["PercentAbove0.5m"]] -  base[["PercentAbove3m"]]
+base$PercentBelow5m <- base[["PercentAbove0.5m"]] -  base[["PercentAbove5m"]]
+base$PercentBelow7m <- base[["PercentAbove0.5m"]] -  base[["PercentAbove7m"]]
+
+## Store length of red for later use
+lr <- length(base[1])
+
+## Extract data:
+
+buffer <- c(10, 50) ## Chose extraction buffers here
+
+## Create data set which will be filled by the loop:
+
+extracted <- cbind(coord,
+                   matrix(NA, ncol = lr),
+                   sort(rep(buffer, nrow(coord))))
+colnames(extracted)[6:length(extracted)] <- c(names(base), "buffer")
+
+## Run the loop across all buffers (time consuming):
+
+for (i in buffer) {
+
+  bol1 <- extracted$buffer == i
+  extracted[bol1, 6:(5+lr)] <- extract(base,
+                                       extracted[bol1, c("east", "north")],
+                                       fun = mean,
+                                       na.rm = TRUE,
+                                       buffer = i)
+
+}
+
+dir.create("temp")
+write.csv(extracted, "temp/forest_ALS_uppland.csv", row.names = FALSE)
 extracted <- read.csv("temp/forest_ALS_uppland.csv")
 
 ## 6. Merge data sets and export -----------------------------------------------

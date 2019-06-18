@@ -14,7 +14,7 @@ library(data.table)
 library(tidyr)
 library(plyr)
 
-## 2. Import of trees.csv from Hagl?fs device ----------------------------------
+## 2. Import of trees.csv from Haglöfs device ----------------------------------
 
 trees <- read.csv("L:/DATA/HagFTax/trees.csv", sep = ";")
 head(trees)

@@ -126,7 +126,41 @@ write.csv(dist[!is.na(dist$species), c("block",
           "clean/ds_2017to2018.csv",
           row.names = FALSE)
 
-## 9. Make a file for occupancy modelling --------------------------------------
+## 9. Make a file for occupancy modelling based on 5 min and two --------------
+##    replicates per visit. The file will be unstructured in its visits
+
+head(obs)
+
+occ_double_end <- obs[obs$method == "ds", ]
+occ_double_end$sampling_period <- "second"
+
+occ_double_start <- obs[obs$method == "tm" & 
+                    obs$obs_year != "2016" & 
+                    obs$minutes_to_obs <= 5, ]
+occ_double_start$sampling_period <- "first"
+
+occ_double <- rbind(occ_double_start, occ_double_end)
+
+occ_double <- unique(occ_double[is.na(occ_double$start), ],
+                     by = c("plot", 
+                            "obs_year", 
+                            "visit", 
+                            "sampling_period", 
+                            "species"))
+
+occ_double <- as.data.frame(occ_double)
+write.csv(occ[, c("block",
+                  "plot",
+                  "observer",
+                  "visit",
+                  "obs_year",
+                  "dp_march",
+                  "min_post_sunrise",
+                  "species")], 
+          "clean/occ_double_2017to2018.csv",
+          row.names = FALSE)
+
+## 10. Make a file for occupancy modelling based on the whole obs time ---------
 
 occ <- obs
 
