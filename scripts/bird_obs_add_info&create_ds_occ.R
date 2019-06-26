@@ -35,7 +35,7 @@ time_calc <- function(x) {
 ## 3. Load and explore data ----------------------------------------------------
 
 dir("data")
-obs <- read.csv("data/bird_obs_2016to18.csv"); head(obs)
+obs <- read.csv("data/bird_obs_2016to19.csv"); head(obs)
 coord <- read.csv("data/coordinates_from_master_file.csv"); head(coord)
 sunrise <- read.csv("data/sunrise_uppsala.csv"); head(sunrise)
 
@@ -50,7 +50,7 @@ obs$dist <- sqrt((obs$X - obs$east)^2 + (obs$Y - obs$north)^2)
 ## Check all obs > 50m, correct, rerun script and continue!
 
 dir.create("temp")
-# write.csv(obs, "temp/dist_uncorrected.csv")
+#write.csv(obs, "temp/dist_uncorrected.csv")
 
 ## 5. Add time after start to all observations ---------------------------------
 
@@ -68,7 +68,7 @@ obs[, minutes_to_obs := time_calc(.SD), by = c("plot",
                                                "visit")]
 
 ## Check all minutes_to_obs, rerun script and continue!
-# write.csv(obs, "temp/minutes_to_obs_uncorrected.csv")
+#write.csv(obs, "temp/minutes_to_obs_uncorrected.csv")
 
 ## 6. Add time after sunrise ---------------------------------------------------
 
@@ -123,7 +123,7 @@ write.csv(dist[!is.na(dist$species), c("block",
                                        "height",
                                        "dist",
                                        "minutes_to_obs")], 
-          "clean/ds_2017to2018.csv",
+          "clean/ds_2017to2019.csv",
           row.names = FALSE)
 
 ## 9. Make a file for occupancy modelling based on 5 min and two --------------
@@ -158,7 +158,7 @@ write.csv(occ_double[, c("block",
                          "dp_march",
                          "min_post_sunrise",
                          "species")], 
-          "clean/occ_double_2017to2018.csv",
+          "clean/occ_double_2017to2019.csv",
           row.names = FALSE)
 
 ## 10. Make a file for occupancy modelling based on the whole obs time ---------
@@ -170,8 +170,8 @@ bolean1 <- occ$obs_year == 2017 & occ$method == "ds"
 occ$minutes_to_obs[bolean1] <- occ$minutes_to_obs[bolean1] + 25 
 bolean2 <- occ$obs_year == 2018 & occ$method == "ds"
 occ$minutes_to_obs[bolean2] <- occ$minutes_to_obs[bolean2] + 10 
-# bolean3 <- occ$obs_year == 2019 & occ$method == "ds"
-# occ$minutes_to_obs[bolean3] <- occ$minutes_to_obs[bolean3] + 10 
+bolean3 <- occ$obs_year == 2019 & occ$method == "ds"
+occ$minutes_to_obs[bolean3] <- occ$minutes_to_obs[bolean3] + 10
 
 ## Add survey time to data set:
 
@@ -180,7 +180,7 @@ occ$obs_time <- as.numeric(occ$obs_time)
 occ$obs_time[occ$obs_year == 2016] <- 60
 occ$obs_time[occ$obs_year == 2017] <- 30
 occ$obs_time[occ$obs_year == 2018] <- 15
-#occ$obs_time[occ$obs_year == 2019] <- 15
+occ$obs_time[occ$obs_year == 2019] <- 15
 
 ## Exclude all but first obs:
 
@@ -211,7 +211,7 @@ write.csv(occ[, c("block",
                   "height",
                   "dist",
                   "minutes_to_obs")], 
-          "clean/occ_2016to2018.csv",
+          "clean/occ_2016to2019.csv",
           row.names = FALSE)
 
 ## --------------------------END------------------------------------------------
