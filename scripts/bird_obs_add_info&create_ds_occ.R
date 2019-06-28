@@ -3,7 +3,7 @@
 ## with occupancy sampling data is the output.
 ##
 ## First edit: 20180824
-## Last edit: 20181112
+## Last edit: 20190628
 ##
 ## Author: Julian Klein
 
@@ -141,7 +141,16 @@ occ_double_start$sampling_period <- "first"
 
 occ_double <- rbind(occ_double_start, occ_double_end)
 
-occ_double <- unique(occ_double[is.na(occ_double$start), ],
+## Add "no_bird" to species per plot and year and sampling session when no bird 
+## was observed. Otherwise this visit will be lost in the analysis.
+occ_double[, "no_bird" := nrow(.SD),
+           by = c("obs_year", "plot", "visit", "sampling_period")]
+occ_double$species <- as.character(occ_double$species)
+occ_double$species[occ_double$no_bird == 1 & 
+                     is.na(occ_double$species)] <- "no_obs"
+
+## Exclude all start rows except the "no_bird" ones:
+occ_double <- unique(occ_double[!is.na(occ_double$species), ],
                      by = c("plot", 
                             "obs_year", 
                             "visit", 
@@ -187,8 +196,14 @@ occ$obs_time[occ$obs_year == 2019] <- 15
 ## Order according to obs_time:
 setorder(occ, minutes_to_obs)
 
+## Add "no_bird" to species per plot and year and sampling session when no bird 
+## was observed. Otherwise this visit will be lost in the analysis.
+occ[, "no_bird" := nrow(.SD), by = c("obs_year", "plot", "visit")]
+occ$species <- as.character(occ$species)
+occ$species[occ$no_bird == 2 & sum(is.na(occ$species)) == 2] <- "no_obs"
+
 ## Chose unique obs per year/plot/visit/species
-occ <- unique(occ[is.na(occ$start), ], 
+occ <- unique(occ[!is.na(occ$species), ], 
               by = c("plot", "obs_year", "visit", "species"))
 
 ## Chose columns important for analysis and exclude NA's in species for "start":
