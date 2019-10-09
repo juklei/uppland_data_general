@@ -11,7 +11,7 @@
 ##
 
 ## First edit: 20181031
-## Last edit: 20190522
+## Last edit: 20191009
 
 ## Author: Julian Klein
 
@@ -105,17 +105,17 @@ laser[, "laser_mean" := mean(distance), by = c("plot", "experiment")]
 
 laser <- unique(laser[, c("plot", "laser_mean", "experiment")])
 
-## 5. Create ALS data ----------------------------------------------------------
+## 5. Create remote sensing data -----------------------------------------------
 
 ## Specify directory in which the .asc/.tif files are found and to be stored:
-dir_ALS <- "N:/Uppland project/Laserdata/"
-dir(dir_ALS)
+dir_rs <- "N:/Uppland project/Remote sensing data/"
+dir(dir_rs)
 
-## File names
+## Lidar File names
 n <- c("ElevP95", "PercentAbove0.5m", "PercentAbove3m", "PercentAbove5m", "PercentAbove7m")
 
-## Load base files into a raster stack:
-base <- stack(paste0(dir_ALS, "all_plots_", n, ".asc"))
+## Load Lidar base files into a raster stack:
+base <- stack(paste0(dir_rs, "all_plots_", n, ".asc"))
 names(base) <- n
 
 ## Add undergrowth density:
@@ -148,6 +148,21 @@ for (i in buffer) {
                                        na.rm = TRUE,
                                        buffer = i)
 
+}
+
+## Import the stem diameter data:
+sdbh_rs <- raster(paste0(dir_rs, "sksSkogligaGrunddataDgv03.tif"))
+
+## Add the stem diameter to the extracted file:
+for (i in buffer) {
+  
+  bol1 <- extracted$buffer == i
+  extracted$sdbh_rs[bol1] <- extract(sdbh_rs,
+                                     extracted[bol1, c("east", "north")],
+                                     fun = mean,
+                                     na.rm = TRUE,
+                                     buffer = i)
+  
 }
 
 dir.create("temp")
