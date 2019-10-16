@@ -112,13 +112,15 @@ dir_rs <- "N:/Uppland project/Remote sensing data/"
 dir(dir_rs)
 
 ## Lidar File names
-n <- c("ElevP95", "PercentAbove0.5m", "PercentAbove3m", "PercentAbove5m", "PercentAbove7m")
+n <- c("ElevP95", "PercentAbove0.5m", "PercentAbove2m", "PercentAbove3m", 
+       "PercentAbove5m", "PercentAbove7m")
 
 ## Load Lidar base files into a raster stack:
 base <- stack(paste0(dir_rs, "all_plots_", n, ".asc"))
 names(base) <- n
 
 ## Add undergrowth density:
+base$PercentPntrt2m <- 100 - base[["PercentAbove2m"]]
 base$PercentBelow3m <- base[["PercentAbove0.5m"]] -  base[["PercentAbove3m"]]
 base$PercentBelow5m <- base[["PercentAbove0.5m"]] -  base[["PercentAbove5m"]]
 base$PercentBelow7m <- base[["PercentAbove0.5m"]] -  base[["PercentAbove7m"]]
@@ -166,8 +168,8 @@ for (i in buffer) {
 }
 
 dir.create("temp")
-write.csv(extracted, "temp/forest_ALS_uppland.csv", row.names = FALSE)
-extracted <- read.csv("temp/forest_ALS_uppland.csv")
+write.csv(extracted, "temp/forest_RS_uppland.csv", row.names = FALSE)
+extracted <- read.csv("temp/forest_RS_uppland.csv")
 
 ## 6. Merge data sets and export -----------------------------------------------
 
