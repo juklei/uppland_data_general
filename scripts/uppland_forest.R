@@ -187,23 +187,27 @@ forest_plot <- merge(f_plot,
                      all.y = TRUE,
                      by = c("plot", "experiment"))
 forest_plot <- merge(extracted[extracted$buffer == 50 & 
-                               extracted$circle_10m == "middle", ],
+                               extracted$circle_10m == "middle", -1],
                      forest_plot,
                      all.y = TRUE,
                      by = c("plot", "experiment")) 
 
-forest_subplot <- merge(extracted, 
+forest_subplot <- merge(extracted[, -1], 
                         f_subplot, 
                         all.y = TRUE,
                         by = c("plot", "circle_10m", "experiment")) 
 
 ## Add experimental treatment to both:
 forest_plot <- merge(forest_plot, 
-                     unique(ffmf[, c("plot", "treatment")]), 
+                     unique(ffmf[, c("plot", "block", "treatment")]), 
                      by = "plot")
 forest_subplot <- merge(forest_subplot, 
-                        unique(ffmf[, c("plot", "treatment")]), 
+                        unique(ffmf[, c("plot", "block", "treatment")]), 
                         by = "plot")
+
+## Rearrange columns befor export:
+forest_plot <- forest_plot[, c(30,1:29,31)]
+forest_subplot <- forest_subplot[, c(29,1:28,30)]
 
 dir.create("clean")
 write.csv(forest_plot, "clean/forest_data_uppland_plot.csv", row.names = FALSE)
