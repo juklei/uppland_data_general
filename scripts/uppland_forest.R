@@ -11,7 +11,7 @@
 ##
 
 ## First edit: 20181031
-## Last edit: 20191009
+## Last edit: 20191106
 
 ## Author: Julian Klein
 
@@ -31,7 +31,7 @@ library(rgeos)
 dir()
 forest <- read.csv("data/uppland_forest.csv")
 laser <- read.csv("data/uppland_forest_laser.csv")
-ffmf <- read.csv("data/forgotten_forest_master_file.csv")
+ffmf <- read.csv("data/ffmf_derived.csv")
 
 head(forest)
 head(ffmf)
@@ -199,15 +199,21 @@ forest_subplot <- merge(extracted[, -1],
 
 ## Add experimental treatment to both:
 forest_plot <- merge(forest_plot, 
-                     unique(ffmf[, c("plot", "block", "treatment")]), 
+                     unique(ffmf[, c("plot", 
+                                     "block", 
+                                     "treatment", 
+                                     "effect_year")]), 
                      by = "plot")
 forest_subplot <- merge(forest_subplot, 
-                        unique(ffmf[, c("plot", "block", "treatment")]), 
+                        unique(ffmf[, c("plot", 
+                                        "block", 
+                                        "treatment", 
+                                        "effect_year")]), 
                         by = "plot")
 
 ## Rearrange columns befor export:
-forest_plot <- forest_plot[, c(30,1:29,31)]
-forest_subplot <- forest_subplot[, c(29,1:28,30)]
+forest_plot <- forest_plot[, c(30,1:29,31:32)]
+forest_subplot <- forest_subplot[, c(29,1:28,30:31)]
 
 dir.create("clean")
 write.csv(forest_plot, "clean/forest_data_uppland_plot.csv", row.names = FALSE)
