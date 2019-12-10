@@ -60,8 +60,8 @@ f_t1 <- dcast(f_t1,
               plot + experiment ~ species, 
               value.var = c("nr", "average_dbh"))
 
-## Replace NA in tree counts with 0's in f_t1:
-f_t1[, 3:7][is.na(f_t1[, 3:7])] <- 0
+## Replace NA in tree counts and dbh with 0's in f_t1:
+f_t1[, 3:12][is.na(f_t1[, 3:12])] <- 0
 
 f_t2 <- forest[, list("nr_skarm" = sum(umbrella == "yes")), 
                by = c("plot", "experiment")]
@@ -80,7 +80,7 @@ f_t3 <- dcast(f_t3,
               value.var = c("nr", "average_dbh"))
 
 ## Replace NA in tree counts with 0's in f_t1:
-f_t3[, 4:8][is.na(f_t3[, 4:8])] <- 0
+f_t3[, 4:13][is.na(f_t3[, 4:13])] <- 0
 
 f_t4 <- forest[, list("nr_skarm" = sum(umbrella == "yes")), 
                by = c("plot", "circle_10m", "experiment")]
