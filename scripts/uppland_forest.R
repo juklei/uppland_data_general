@@ -102,9 +102,9 @@ laser$distance[laser$distance == -9999] <- laser$dist_m[laser$distance == -9999]
 ## Calculate median distance plot and angle (Median to avoid dominance of 
 ## extreme values):
 
-laser[, "laser_mean" := median(distance), by = c("plot", "experiment")]
+laser[, "laser_median" := median(distance), by = c("plot", "experiment")]
 
-laser <- unique(laser[, c("plot", "laser_mean", "experiment")])
+laser <- unique(laser[, c("plot", "laser_median", "experiment")])
 
 ## 5. Create remote sensing data -----------------------------------------------
 
