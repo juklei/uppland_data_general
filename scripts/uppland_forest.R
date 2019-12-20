@@ -99,9 +99,10 @@ laser[, "dist_m" := max(distance),
 
 laser$distance[laser$distance == -9999] <- laser$dist_m[laser$distance == -9999]
 
-## Calculate mean distance plot and angle:
+## Calculate median distance plot and angle (Median to avoid dominance of 
+## extreme values):
 
-laser[, "laser_mean" := mean(distance), by = c("plot", "experiment")]
+laser[, "laser_mean" := median(distance), by = c("plot", "experiment")]
 
 laser <- unique(laser[, c("plot", "laser_mean", "experiment")])
 
