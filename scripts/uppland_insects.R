@@ -77,21 +77,31 @@ rm(tmp)
 col_order <- c("plot", "trap", "side", "date", "cover", "file_name", "comment")
 all_comb <- rbind(comb[, col_order], upp[, col_order]) 
 
+## Indicate duplicated measurments:
+all_comb$id <- paste0(all_comb$plot, "_", 
+                      all_comb$trap, "_",
+                      all_comb$side, "_",
+                      as.character(all_comb$date))
+select <- names(which(table(all_comb$id) > 1))
+all_comb$duplicated <- ifelse(all_comb$id %in% select, "yes", "no")
+rm(select)
+
+## Remove all duplicated which are NA in cover and rerun code above:
+all_comb <- all_comb[!(all_comb$duplicated == "yes" & is.na(all_comb$cover)), ]
+select <- names(which(table(all_comb$id) > 1))
+all_comb$duplicated <- ifelse(all_comb$id %in% select, "yes", "no")
+rm(select)
+
 ## Export the file and clean it up trap by trap:
-all_comb <- all_comb[order(all_comb$date), ]
+all_comb <- all_comb[order(all_comb$id), ]
 write.csv(all_comb, "temp/insect_2017_cleanup.csv", row.names = FALSE)
 
 ## Rename all files with plot_trap_side_date to go through and identify
-## When a trap was changed:
-old_files <- list.files(pic_dir)
-all_comb <- all_comb[match(old_files, all_comb$file_name), ]
-new_files <- paste0(all_comb$plot, "_", 
-                    all_comb$trap, "_",
-                    all_comb$side, "_",
-                    print(all_comb$date), 
-                    ".jpg")
+## When a trap was changed: Do this only for one side.
+side_a <- all_comb[all_comb$side == "a" & all_comb$file_name != "none", ]
+new_files <- paste0(side_a$id, ".jpg")
 dir.create(paste0(pic_dir, "/renamed"))
-file.copy(from = paste0(pic_dir, "/", old_files),
+file.copy(from = paste0(pic_dir, "/", side_a$file_name),
           to = paste0(pic_dir, "/renamed/", new_files))
 
 ## Now check for when new traps were raised and add/correct in 
@@ -128,7 +138,9 @@ ac_corr$cover_diff <- 0
 
 
 
-## 5. ...
+## 6. Analyse residuaals of duplicates to test methology -----------------------
+
+...
 
 1) Merge names and measurments
 2) All duplicates (same date) calculate mean
