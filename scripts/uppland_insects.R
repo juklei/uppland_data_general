@@ -35,10 +35,10 @@ cover.calc <- function(x){
   ## Calculate cover difference:
   for(i in 2:nrow(x)){
     if(x[i-1, "comment_both"] %in% c("changed", "on_ground")){
-      x[i, "daily_incr"] <- x[i, "mean_cover"] / x[i, "days_diff"]
+      x[i, "cover_diff"] <- x[i, "mean_cover"] 
     } else{
-      x[i, "daily_incr"] <- ((x[i, "mean_cover"] - x[(i-1), "mean_cover"]) /
-                               (1 - x[(i-1), "mean_cover"])) / x[i, "days_diff"]
+      x[i, "cover_diff"] <- (x[i, "mean_cover"] - x[(i-1), "mean_cover"]) /
+                            (1 - x[(i-1), "mean_cover"])
     }
   }
   return(x)
@@ -163,23 +163,36 @@ acc_red$date <- as.Date(acc_red$date, format = "%d/%m/%Y")
 ## the person that did the analysis and year effects: 
 acc_red$mean_cover <- standardise(acc_red$mean_cover)
 
-## Calculate the daily increment:
-acc_red$days_diff <- as.numeric(NA)
-acc_red$daily_incr <- 0
+## Calculate the differences and the cumulative sums:
+acc_red$days_diff <- 0
+acc_red$cover_diff <- 0
 accr_incr <- acc_red[, cover.calc(.SD), by = c("plot", "trap", "side")]
 
-## All increments that are < 0 must become 0:
-accr_incr$daily_incr <- ifelse(accr_incr$daily_incr < 0,
+## All cover differences that are < 0 must become 0:
+accr_incr$cover_diff <- ifelse(accr_incr$cover_diff < 0,
                                0,
-                               accr_incr$daily_incr)
+                               accr_incr$cover_diff)
 
 ## Why so many (390) minus ????????
 
-## 6. Make different plots to evaluate the data quality ------------------------
+## Calculate the daily increment:
+accr_incr$daily_incr <- accr_incr$cover_diff/accr_incr$days_diff
+accr_incr$daily_incr <- ifelse(accr_incr$days_diff == 0, 
+                               0, 
+                               accr_incr$daily_incr) 
 
+## Calculate cumsum of the mean per plot:
+ai_cs <- accr_incr[order(accr_incr$date), 
+                   list("mean_diff" = mean(cover_diff, na.rm = TRUE)), 
+                   by = c("plot", "date")]
+ai_cs[, "cumsum" := cumsum(mean_diff), by = "plot"]
+
+## 6. Make different plots to evaluate the data quality ------------------------
 accr_incr$post_march <- as.numeric(accr_incr$date - as.Date("2017-03-31"))
+ai_cs$post_march <- as.numeric(ai_cs$date - as.Date("2017-03-31"))
 
 dir.create("figures")
+
 pdf("figures/insects_2017.pdf")
 for(i in levels(accr_incr$plot)){
   G <- ggplot(droplevels(accr_incr[accr_incr$plot == i, ]), 
@@ -193,12 +206,31 @@ for(i in levels(accr_incr$plot)){
 }
 dev.off()
 
+pdf("figures/insects_2017_cumsum.pdf")
+for(i in levels(ai_cs$plot)){
+  G <- ggplot(droplevels(ai_cs[ai_cs$plot == i, ]), 
+              aes(post_march, cumsum)) +#, color = plot)) +
+       geom_line() + geom_point() + 
+       ggtitle(print(i)) +
+       theme_classic(15)
+  plot(G)
+}
+dev.off()
+
+pdf("figures/insects_2017_cumsum_All.pdf")
+ggplot(ai_cs, aes(post_march, cumsum, color = plot)) +
+    geom_line() + geom_point() + 
+    theme_classic(15) +
+    theme(legend.position = "none") 
+dev.off()
+
+
 ## Make figure for cumultative cover with daily rate i for time (i-1):i
 
 ## ...
 
 
-
+## Test figures also for non-standardised values. cover.calc needs to be sdjusted for that!!!!!!!
 
 
 
