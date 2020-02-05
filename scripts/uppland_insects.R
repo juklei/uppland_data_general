@@ -26,7 +26,7 @@ standardise <- function(x) {
   (x - min(x, na.rm = T)) / (max(x, na.rm = T) - min(x, na.rm = T))
 }
 
-## THis funtion calculates the daily increment on the traps
+## This funtion calculates the daily increment on the traps
 cover.calc <- function(x){
   x <- x[order(x$date), ]
   ## Calculate nr. off days difference:
@@ -36,22 +36,22 @@ cover.calc <- function(x){
   ## Calculate cover difference:
   for(i in 2:nrow(x)){
     if(x[i-1, "comment_both"] %in% c("changed", "on_ground")){
-      x[i, "cover_diff"] <- x[i, "mean_cover"] 
+      x[i, c("cover_diff", "cd_stand")] <- x[i, c("mean_cover", "mc_stand")] 
     } else{
-      x[i, "cover_diff"] <- (x[i, "mean_cover"] - x[(i-1), "mean_cover"]) /
-                            (1 - x[(i-1), "mean_cover"])
-    }
-  }
-  return(x)
+      x[i, c("cover_diff", "cd_stand")] <- (x[i, c("mean_cover", "mc_stand")] -  
+                                        x[(i-1), c("mean_cover", "mc_stand")]) /
+                                     (1 - x[(i-1), c("mean_cover", "mc_stand")])
+  }}
+  return(x) 
 }
 
 ## 3. Load and explore data ----------------------------------------------------
 
 dir("data")
 
-names <- read.csv("data/uppland_insect_sticky_names_2017.csv")
-measure <- read.csv("data/uppland_insect_sticky_measurments_2017.csv")
-upp <- read.csv("data/uppland_insect_sticky_up_2017&bearing.csv")
+names <- read.csv("data/uppland_insect_sticky_names_2018.csv")
+measure <- read.csv("data/uppland_insect_sticky_measurments_2018.csv")
+upp <- read.csv("data/uppland_insect_sticky_up_2018.csv")
 dupl <- read.csv("data/uppland_insect_sticky_measurments_duplicates.csv")
 
 head(names)
@@ -60,75 +60,76 @@ head(upp)
 head(dupl)
 
 ## Where are the insect pictures located?
-pic_dir <- "N:/Uppland project/Data/2017/Archive 2017/Insect traps"
+pic_dir <- "N:/Uppland project/Data/2018/Insect traps/Traps"
 
-# ## 4. Prepare and merge all files ----------------------------------------------
-# 
-# ## Add duplicates to measure: The duplicates that do not have a match in names
-# ## for example because they are from another year, will be dropped when merging 
-# ## with "names".
-# measure <- rbind(measure, dupl)
-# 
-# ## Remove (red) from all file names in the measurment file:
-# measure$Slice <- as.character(measure$Slice)
-# tmp <- strsplit(measure$Slice, split = " ")
-# measure$Slice <- sapply(tmp,"[[", 1)
-# rm(tmp)
-# 
-# colnames(measure)[5] <- "cover" ## Change measurment name
-# 
-# ## Merge measure and names. All names should remain beacuase pictures in names 
-# ## without a match in measure often indicate that a trap was changed.
-# comb <- merge(names, measure, all.x = TRUE, by.x = "file_name", by.y = "Slice")
-# 
-# ## Adjust plot and trap to the usual format:
-# comb$plot <- paste0("plot_", comb$plot) 
-# comb$trap <- paste0("trap_", comb$trap)
-# 
-# ## Adjust date to R format:
-# comb$date <- as.Date(comb$date, format = "%Y:%m:%d %H:%M:%S")
-# 
-# ## Merge comments to one column:
-# comb$comment <- paste(comb$comment, "/", comb$Comment, "/ Dupl?", comb$duplikat)
-# 
-# ## Adjust format in the upp data frame to fit comb:
-# upp$file_name <- "none"
-# upp$cover <- 0
-# upp$date <- as.Date(upp$date_upp, format = "%d/%m/%Y")
-# upp$side <- "a"
-# tmp <- upp
-# tmp$side <- "b"
-# upp <- rbind(upp, tmp)
-# rm(tmp)
-# 
-# ## Add "upp" to "comb" and reduce to needed columns:
-# col_order <- c("plot", "trap", "side", "date", "cover", "file_name", "comment")
-# all_comb <- rbind(comb[, col_order], upp[, col_order]) 
-# 
-# ## Indicate duplicated measurments:
-# all_comb$id <- paste0(all_comb$plot, "_", 
-#                       all_comb$trap, "_",
-#                       all_comb$side, "_",
-#                       as.character(all_comb$date))
-# select <- names(which(table(all_comb$id) > 1))
-# all_comb$duplicated <- ifelse(all_comb$id %in% select, "yes", "no")
-# rm(select)
-# 
-# ## Remove all duplicated which are NA in cover and rerun code above:
-# all_comb <- all_comb[!(all_comb$duplicated == "yes" & is.na(all_comb$cover)), ]
-# 
-# ## Export the file and clean it up trap by trap:
-# all_comb <- all_comb[order(all_comb$id), ]
-# write.csv(all_comb, "temp/insect_2017_cleanup.csv", row.names = FALSE)
-# 
-# ## Rename all files with plot_trap_side_date to go through and identify
-# ## When a trap was changed: Do this only for one side.
-# side_a <- all_comb[all_comb$side == "a" & all_comb$file_name != "none", ]
-# new_files <- paste0(side_a$id, ".jpg")
-# dir.create(paste0(pic_dir, "/renamed"))
-# file.copy(from = paste0(pic_dir, "/", side_a$file_name),
-#           to = paste0(pic_dir, "/renamed/", new_files))
-# 
+## 4. Prepare and merge all files ----------------------------------------------
+
+## Add duplicates to measure: The duplicates that do not have a match in names
+## for example because they are from another year, will be dropped when merging
+## with "names".
+measure <- rbind(measure, dupl)
+
+## Remove (red) from all file names in the measurment file:
+measure$Slice <- as.character(measure$Slice)
+tmp <- strsplit(measure$Slice, split = " ")
+measure$Slice <- sapply(tmp,"[[", 1)
+rm(tmp)
+
+colnames(measure)[5] <- "cover" ## Change measurment name
+
+## Merge measure and names. All names should remain because pictures in names
+## without a match in measure often indicate that a trap was changed.
+comb <- merge(names, measure, all.x = TRUE, by.x = "file_name", by.y = "Slice")
+
+## Adjust plot and trap to the usual format:
+comb$plot <- paste0("plot_", comb$plot)
+comb$trap <- paste0("trap_", comb$trap)
+
+## Adjust date to R format:
+comb$date <- as.Date(comb$date, format = "%Y:%m:%d %H:%M:%S")
+
+## Merge comments to one column:
+comb$comment <- paste(comb$comment, "/", comb$Comment, "/ Dupl?", comb$duplikat)
+
+## Adjust format in the upp data frame to fit comb:
+upp$file_name <- "none"
+upp$comment <- NA ## If comment exists in upp, take away !!!
+upp$cover <- 0
+upp$date <- as.Date(upp$date_upp, format = "%d/%m/%Y")
+upp$side <- "a"
+tmp <- upp
+tmp$side <- "b"
+upp <- rbind(upp, tmp)
+rm(tmp)
+
+## Add "upp" to "comb" and reduce to needed columns:
+col_order <- c("plot", "trap", "side", "date", "cover", "file_name", "comment")
+all_comb <- rbind(comb[, col_order], upp[, col_order])
+
+## Indicate duplicated measurments:
+all_comb$id <- paste0(all_comb$plot, "_",
+                      all_comb$trap, "_",
+                      all_comb$side, "_",
+                      as.character(all_comb$date))
+select <- names(which(table(all_comb$id) > 1))
+all_comb$duplicated <- ifelse(all_comb$id %in% select, "yes", "no")
+rm(select)
+
+## Remove all duplicated which are NA in cover and rerun code above:
+all_comb <- all_comb[!(all_comb$duplicated == "yes" & is.na(all_comb$cover)), ]
+
+## Export the file and clean it up trap by trap:
+all_comb <- all_comb[order(all_comb$id), ]
+write.csv(all_comb, "temp/insect_2018_cleanup.csv", row.names = FALSE)
+
+## Rename all files with plot_trap_side_date to go through and identify
+## When a trap was changed: Do this only for one side.
+side_a <- all_comb[all_comb$side == "a" & all_comb$file_name != "none", ]
+new_files <- paste0(side_a$id, ".jpg")
+dir.create(paste0(pic_dir, "/renamed"))
+file.copy(from = paste0(pic_dir, "/", side_a$file_name),
+          to = paste0(pic_dir, "/renamed/", new_files))
+
 ## 5. Now check for when new traps were raised and add/correct in --------------
 ##    insect_xxxx_cleaned.csv. Then reimport this file:
 ac_corr <- read.csv("temp/insect_2017_cleaned.csv")
@@ -153,6 +154,9 @@ dupl <- droplevels(ac_corr[ac_corr$duplicated == "yes", ])
 dupl$resid <- abs(dupl$mean_cover - dupl$cover)
 plot(density(dupl$resid, na.rm = TRUE))
 
+dir.create("results/")
+capture.output(summary(dupl$resid)) %>% write("results/insect_dupl_2017.txt")
+
 ## 6. Create a function that calculates the difference in % area between a  
 ##    picture of a trap and the picture of the same trap at the preceeding visit
 
@@ -160,108 +164,62 @@ plot(density(dupl$resid, na.rm = TRUE))
 acc_red <- unique(ac_corr[, c(1:4, 11, 10)])
 acc_red$date <- as.Date(acc_red$date, format = "%d/%m/%Y")
 
-## Standardise the cover variable to the 0-1 range, to correct for the effect of 
-## the person that did the analysis and year effects: 
-acc_red$mean_cover <- standardise(acc_red$mean_cover)
+## Make % to rate and standardise the cover variable to the 0-1 range, 
+## to correct for the effect of  the person that did the analysis and year 
+## effects: 
+acc_red$mean_cover <- acc_red$mean_cover/100
+acc_red$mc_stand <- standardise(acc_red$mean_cover)
 
 ## Calculate the differences and the cumulative sums:
 acc_red$days_diff <- 0
 acc_red$cover_diff <- 0
+acc_red$cd_stand <- 0
 accr_incr <- acc_red[, cover.calc(.SD), by = c("plot", "trap", "side")]
 
 ## All cover differences that are < 0 must become 0:
-accr_incr$cover_diff <- ifelse(accr_incr$cover_diff < 0, ## Why so many (390) minus ????????
+accr_incr$cover_diff <- ifelse(accr_incr$cover_diff < 0, 
                                0,
                                accr_incr$cover_diff)
+accr_incr$cd_stand <- ifelse(accr_incr$cd_stand < 0, 0, accr_incr$cd_stand)
 
 ## Calculate the daily increment:
 accr_incr$daily_incr <- accr_incr$cover_diff/accr_incr$days_diff
+accr_incr$di_stand <- accr_incr$cd_stand/accr_incr$days_diff
 accr_incr$daily_incr <- ifelse(accr_incr$days_diff == 0, 
                                0, 
                                accr_incr$daily_incr) 
+accr_incr$di_stand <- ifelse(accr_incr$days_diff == 0, 0, accr_incr$di_stand) 
 
 ## Add numeric date:
 accr_incr$post_march <- as.numeric(accr_incr$date - as.Date("2017-03-31")) 
 accr_incr$pm_mean  <- accr_incr$post_march - accr_incr$days_diff/2
 
-## Calculate the mean daily increment and expand for alll preceeding days until
+## Calculate the mean daily increment and expand for all preceeding days until
 ## previous trap picture:
 ai_mean <- accr_incr[order(accr_incr$date), 
                      list("mean_incr" = mean(daily_incr, na.rm = TRUE),
+                          "mi_stand" = mean(di_stand, na.rm = TRUE),
                           "post_march" = mean(post_march, na.rm = TRUE)), 
                      by = c("plot", "date")]
-aim_ext <- expand.grid("plot" = unique(ai_mean$plot), 
-                       "post_march" = 0:max(ai_mean$post_march))
+aim_ext <- ai_mean[, list("post_march" = seq(min(post_march) + 1, 
+                                             max(post_march), 
+                                             1)),
+                   by = "plot"]
 aim_ext <- merge(aim_ext, 
-                 ai_mean[, c("plot", "post_march", "mean_incr")], 
+                 ai_mean[, c("plot", "post_march", "mean_incr", "mi_stand")], 
                  all.x = TRUE,
                  by = c("plot", "post_march"))
 aim_ext <- as.data.table(aim_ext)
-aim_ext <- aim_ext[, fill(.SD, "mean_incr", .direction = "up"), by = "plot"]
-aim_ext <- aim_ext[aim_ext$post_march < 74 & aim_ext$post_march > 26, ]
-aim_ext[, "cumsum" := cumsum(mean_incr), by = "plot"]
+aim_ext <- aim_ext[, fill(.SD, c("mean_incr", "mi_stand"), .direction = "up"), 
+                   by = "plot"]
 
-## Export:
-out_2017 <- aim_ext[, list("sum_incr" = max(cumsum),
-                           "max_incr" = mean(.SD$post_march[
-                             .SD$mean_incr == max(.SD$mean_incr)])),
-                    by = "plot"]
+## Add year, observer and export:
+
+aim_ext$obs_year <- 2017
+aim_ext$obs <- "bkn"
+
 dir.create("clean")
-write.csv(out_2017, "clean/insects_2017.csv", row.names = FALSE)
-
-## 6. Make different plots to evaluate the data quality ------------------------
-
-dir.create("figures")
-
-pdf("figures/insects_2017.pdf")
-for(i in levels(accr_incr$plot)){
-  G <- ggplot(droplevels(accr_incr[accr_incr$plot == i, ]), 
-              aes(pm_mean, daily_incr)) +
-       geom_point() + 
-       geom_smooth(method = "lm", formula = y ~ poly(x, 2)) +
-       # theme(legend.position = "none")
-       ggtitle(print(i)) +
-       theme_classic(15)
-  plot(G)
-}
-dev.off()
-
-pdf("figures/insects_2017_mean.pdf")
-for(i in levels(aim_ext$plot)){
-  G <- ggplot(droplevels(aim_ext[aim_ext$plot == i, ]), 
-              aes(post_march, mean_incr)) +
-       geom_point() + 
-       ylim(0, max(aim_ext$mean_incr)) +
-       ggtitle(print(i)) +
-       theme_classic(15)
-  plot(G)
-}
-dev.off()
-
-pdf("figures/insects_2017_cumsum.pdf")
-for(i in levels(aim_ext$plot)){
-  G <- ggplot(droplevels(aim_ext[aim_ext$plot == i, ]), 
-              aes(post_march, cumsum)) +#, color = plot)) +
-       geom_line() + 
-       ylim(0, max(aim_ext$cumsum)) +
-       ggtitle(print(i)) +
-       theme_classic(15)
-  plot(G)
-}
-dev.off()
+write.csv(na.omit(aim_ext), "clean/insects_2017.csv", row.names = FALSE)
 
 ## -------------------------------END-------------------------------------------
-# ...
-# 
-# 1) Merge names and measurments
-# 2) All duplicates (same date) calculate mean
-# 3) On date y (following date x) calculate (y-x)/(100-x) -> If y-x<0 ->  
-#   -1<if(y-x)<0 replace with 0, if(y-x)<-1 take raw percentage and check whether its true
-#   4) If on ground or other comment return "do manually"
-# 5) Per plot and visit ideally there are six data points
-# 6) Think of which model to use to calculate AUC and peak. Alternatively conect mean per date and calculate AUC
-# without a model.
-# 
-# 7) To analyse only insect traps and how well they function, Download Lidar data for the traps coordinates and calculate forest 
-# openness.
 
