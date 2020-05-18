@@ -39,29 +39,36 @@ head(laser)
 
 ## 3. Process forest data ------------------------------------------------------
 
+forest <- as.data.table(forest)
+
+## Calculate plot level tree species richness for later use:
+
+plsr <- forest[forest$species != "staende_dodved", ]
+plsr <- plsr[, list("tspr" = length(unique(species))), 
+             by = c("plot", "experiment")]
+
 ## Categoriese into spruce, pine and deciduous, alive trees and dead wood:
 
-levels(forest$species)[c(1:4, 6)] <- "lov" 
+levels(forest$species)[c(1:4, 6)] <- "lov"
 
 forest_t1 <- forest[forest$species != "staende_dodved", ]
 forest_t1$species <- "all_alive"
 forest <- rbind(forest, forest_t1)
 
-forest <- as.data.table(forest)
-
 ## Calculate forest measurements at the plot level:
 
 f_t1 <- forest[forest$dbh_cm >= 5, 
                list("nr" = nrow(.SD), 
-                    "average_dbh" = mean(dbh_cm)),
+                    "average_dbh" = mean(dbh_cm),
+                    "sd_dbh" = sd(dbh_cm)),
                by = c("plot", "species", "experiment")]
 
 f_t1 <- dcast(f_t1, 
               plot + experiment ~ species, 
-              value.var = c("nr", "average_dbh"))
+              value.var = c("nr", "average_dbh", "sd_dbh"))
 
 ## Replace NA in tree counts and dbh with 0's in f_t1:
-f_t1[, 3:12][is.na(f_t1[, 3:12])] <- 0
+f_t1[, 3:17][is.na(f_t1[, 3:17])] <- 0
 
 f_t2 <- forest[, list("nr_skarm" = sum(umbrella == "yes")), 
                by = c("plot", "experiment")]
@@ -72,15 +79,16 @@ f_plot <- merge(f_t1, f_t2, by = c("plot", "experiment"))
 
 f_t3 <- forest[forest$dbh_cm >= 5, 
                list("nr" = nrow(.SD), 
-                    "average_dbh" = mean(dbh_cm)),
+                    "average_dbh" = mean(dbh_cm),
+                    "sd_dbh" = sd(dbh_cm)),
                by = c("plot", "circle_10m", "species", "experiment")]
 
 f_t3 <- dcast(f_t3, 
               plot + circle_10m + experiment ~ species, 
-              value.var = c("nr", "average_dbh"))
+              value.var = c("nr", "average_dbh", "sd_dbh"))
 
 ## Replace NA in tree counts with 0's in f_t1:
-f_t3[, 4:13][is.na(f_t3[, 4:13])] <- 0
+f_t3[, 4:18][is.na(f_t3[, 4:18])] <- 0
 
 f_t4 <- forest[, list("nr_skarm" = sum(umbrella == "yes")), 
                by = c("plot", "circle_10m", "experiment")]
@@ -212,9 +220,15 @@ forest_subplot <- merge(forest_subplot,
                                         "effect_year")]), 
                         by = "plot")
 
+## Add tree species richness to plot:
+forest_plot <- merge(forest_plot, 
+                     plsr, 
+                     all.x = TRUE, 
+                     by = c("plot", "experiment")) 
+
 ## Rearrange columns befor export:
-forest_plot <- forest_plot[, c(30,1:29,31:32)]
-forest_subplot <- forest_subplot[, c(29,1:28,30:31)]
+forest_plot <- forest_plot[, c(35, 1:2, 36:37, 6:27, 32:34 ,38)]
+forest_subplot <- forest_subplot[, c(34, 1:3, 35:36, 6:27, 32:33)]
 
 dir.create("clean")
 write.csv(forest_plot, "clean/forest_data_uppland_plot.csv", row.names = FALSE)

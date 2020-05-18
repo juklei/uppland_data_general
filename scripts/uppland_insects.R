@@ -131,7 +131,7 @@ file.copy(from = paste0(pic_dir, "/", side_a$file_name),
 
 ## 5. Now check for when new traps were raised and add/correct in --------------
 ##    insect_xxxx_cleaned.csv. Then reimport this file:
-ac_corr <- read.csv("temp/insect_2019_cleaned.csv")
+ac_corr <- read.csv("temp/insect_2019_cleaned_bkn.csv")
 
 ## Define duplicates once more:
 select <- names(which(table(ac_corr$id) > 1))
