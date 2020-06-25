@@ -187,29 +187,53 @@ accr_incr$post_march <- as.numeric(accr_incr$date - as.Date("2019-03-31"))
 accr_incr$pm_mean  <- accr_incr$post_march - accr_incr$days_diff/2
 
 ## Calculate the mean daily increment and expand for all preceeding days until
-## previous trap picture:
-ai_mean <- accr_incr[order(accr_incr$date), 
-                     list("mean_incr" = mean(daily_incr, na.rm = TRUE),
-                          "post_march" = mean(post_march, na.rm = TRUE)), 
-                     by = c("plot", "date")]
-aim_ext <- ai_mean[, list("post_march" = seq(min(post_march) + 1, 
-                                             max(post_march), 
-                                             1)),
-                   by = "plot"]
-aim_ext <- merge(aim_ext, 
-                 ai_mean[, c("plot", "post_march", "mean_incr")], 
-                 all.x = TRUE,
-                 by = c("plot", "post_march"))
-aim_ext <- as.data.table(aim_ext)
-aim_ext <- aim_ext[, fill(.SD, c("mean_incr"), .direction = "up"), by = "plot"]
+## previous trap picture first per trap and then per plot:
+
+## Per trap:
+
+ai_mean_tl <- accr_incr[order(accr_incr$date), 
+                        list("mean_incr" = mean(daily_incr, na.rm = TRUE),
+                             "post_march" = mean(post_march, na.rm = TRUE)), 
+                        by = c("plot", "trap", "date")]
+ai_mean_tl$mean_incr[is.na(ai_mean_tl$mean_incr)] <- -9999 ## downed traps!
+aim_ext_tl <- ai_mean_tl[, list("post_march" = seq(min(post_march) + 1, 
+                                                   max(post_march), 
+                                                   1)),
+                         by = c("plot", "trap")]
+aim_ext_tl <- merge(aim_ext_tl,
+                    ai_mean_tl[, c("plot", "trap", "post_march", "mean_incr")], 
+                    all.x = TRUE,
+                    by = c("plot", "trap", "post_march"))
+aim_ext_tl <- as.data.table(aim_ext_tl)
+aim_ext_tl <- aim_ext_tl[, fill(.SD, c("mean_incr"), .direction = "updown"), 
+                         by = c("plot", "trap")]
+
+## Per plot:
+
+ai_mean_pl <- accr_incr[order(accr_incr$date), 
+                        list("mean_incr" = mean(daily_incr, na.rm = TRUE),
+                             "post_march" = mean(post_march, na.rm = TRUE)), 
+                        by = c("plot", "date")]
+aim_ext_pl <- ai_mean_pl[, list("post_march" = seq(min(post_march) + 1, 
+                                                   max(post_march), 
+                                                   1)),
+                         by = "plot"]
+aim_ext_pl <- merge(aim_ext_pl, 
+                    ai_mean_pl[, c("plot", "post_march", "mean_incr")], 
+                    all.x = TRUE,
+                    by = c("plot", "post_march"))
+aim_ext_pl <- as.data.table(aim_ext_pl)
+aim_ext_pl <- aim_ext_pl[, fill(.SD, c("mean_incr"), .direction = "up"), 
+                         by = "plot"]
 
 ## Add year, observer and export:
 
-aim_ext$obs_year <- 2019
-aim_ext$obs <- "bkn"
+aim_ext_tl$obs_year <- 2019
+aim_ext_pl$obs_year <- 2019
 
 dir.create("clean")
-write.csv(na.omit(aim_ext), "clean/insects_2019.csv", row.names = FALSE)
+write.csv(na.omit(aim_ext_tl), "clean/insects_tl_2019.csv", row.names = FALSE)
+write.csv(na.omit(aim_ext_pl), "clean/insects_pl_2019.csv", row.names = FALSE)
 
 ## -------------------------------END-------------------------------------------
 
